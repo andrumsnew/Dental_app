@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 interface Patient {
   id: number
@@ -15,11 +16,19 @@ interface Patient {
 }
 
 export default function PacientesPage() {
+  const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<'Todos' | 'Activo' | 'Inactivo'>('Todos')
   const [showModal, setShowModal] = useState(false)
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null)
 
-  // Datos de ejemplo (luego vendrán del backend)
+  // Abrir modal si viene el parámetro ?nuevo=true
+  useEffect(() => {
+    if (searchParams.get('nuevo') === 'true') {
+      setShowModal(true)
+    }
+  }, [searchParams])
+
   const [pacientes, setPacientes] = useState<Patient[]>([
     {
       id: 1,
@@ -77,6 +86,91 @@ export default function PacientesPage() {
       estado: 'Activo'
     },
   ])
+
+  // Estado del formulario
+  const [formData, setFormData] = useState({
+    nombre: '',
+    apellido: '',
+    dni: '',
+    fechaNacimiento: '',
+    telefono: '',
+    email: '',
+    direccion: '',
+    observaciones: ''
+  })
+
+  // Manejar cambios en el formulario
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  // Guardar nuevo paciente
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (editingPatient) {
+      // Editar paciente existente
+      setPacientes(pacientes.map(p => 
+        p.id === editingPatient.id 
+          ? { ...editingPatient, ...formData }
+          : p
+      ))
+    } else {
+      // Crear nuevo paciente
+      const newPatient: Patient = {
+        id: pacientes.length + 1,
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        dni: formData.dni,
+        telefono: formData.telefono,
+        email: formData.email,
+        fechaNacimiento: formData.fechaNacimiento,
+        ultimaVisita: new Date().toISOString().split('T')[0],
+        estado: 'Activo'
+      }
+      setPacientes([...pacientes, newPatient])
+    }
+
+    // Cerrar modal y limpiar formulario
+    setShowModal(false)
+    setEditingPatient(null)
+    setFormData({
+      nombre: '',
+      apellido: '',
+      dni: '',
+      fechaNacimiento: '',
+      telefono: '',
+      email: '',
+      direccion: '',
+      observaciones: ''
+    })
+  }
+
+  // Editar paciente
+  const handleEdit = (patient: Patient) => {
+    setEditingPatient(patient)
+    setFormData({
+      nombre: patient.nombre,
+      apellido: patient.apellido,
+      dni: patient.dni,
+      fechaNacimiento: patient.fechaNacimiento,
+      telefono: patient.telefono,
+      email: patient.email,
+      direccion: '',
+      observaciones: ''
+    })
+    setShowModal(true)
+  }
+
+  // Eliminar paciente
+  const handleDelete = (id: number) => {
+    if (confirm('¿Estás seguro de eliminar este paciente?')) {
+      setPacientes(pacientes.filter(p => p.id !== id))
+    }
+  }
 
   // Filtrar pacientes
   const filteredPacientes = pacientes.filter(paciente => {
@@ -270,18 +364,30 @@ export default function PacientesPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => alert('Ver detalle (Día 6)')}
+                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        title="Ver detalle"
+                      >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       </button>
-                      <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => handleEdit(paciente)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Editar"
+                      >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
-                      <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => handleDelete(paciente.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Eliminar"
+                      >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
@@ -311,9 +417,24 @@ export default function PacientesPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-800">Nuevo Paciente</h2>
+              <h2 className="text-2xl font-bold text-gray-800">
+                {editingPatient ? 'Editar Paciente' : 'Nuevo Paciente'}
+              </h2>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false)
+                  setEditingPatient(null)
+                  setFormData({
+                    nombre: '',
+                    apellido: '',
+                    dni: '',
+                    fechaNacimiento: '',
+                    telefono: '',
+                    email: '',
+                    direccion: '',
+                    observaciones: ''
+                  })
+                }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,7 +443,7 @@ export default function PacientesPage() {
               </button>
             </div>
 
-            <form className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* Datos personales */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
