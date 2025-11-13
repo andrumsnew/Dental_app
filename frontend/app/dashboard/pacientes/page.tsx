@@ -186,8 +186,14 @@ export default function PacientesPage() {
   })
 
   const calcularEdad = (fechaNacimiento: string) => {
+    if (!fechaNacimiento) return 0
+    
     const hoy = new Date()
     const nacimiento = new Date(fechaNacimiento)
+    
+    // Validar que la fecha sea válida
+    if (isNaN(nacimiento.getTime())) return 0
+    
     let edad = hoy.getFullYear() - nacimiento.getFullYear()
     const mes = hoy.getMonth() - nacimiento.getMonth()
     if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
@@ -452,6 +458,9 @@ export default function PacientesPage() {
                   </label>
                   <input
                     type="text"
+                    name="nombre"
+                    value={formData.nombre}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     placeholder="María"
                     required
@@ -463,6 +472,9 @@ export default function PacientesPage() {
                   </label>
                   <input
                     type="text"
+                    name="apellido"
+                    value={formData.apellido}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     placeholder="García López"
                     required
@@ -477,6 +489,9 @@ export default function PacientesPage() {
                   </label>
                   <input
                     type="text"
+                    name="dni"
+                    value={formData.dni}
+                    onChange={handleInputChange}
                     maxLength={8}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     placeholder="12345678"
@@ -489,6 +504,9 @@ export default function PacientesPage() {
                   </label>
                   <input
                     type="date"
+                    name="fechaNacimiento"
+                    value={formData.fechaNacimiento}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     required
                   />
@@ -503,6 +521,9 @@ export default function PacientesPage() {
                   </label>
                   <input
                     type="tel"
+                    name="telefono"
+                    value={formData.telefono}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     placeholder="987654321"
                     required
@@ -514,6 +535,9 @@ export default function PacientesPage() {
                   </label>
                   <input
                     type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     placeholder="paciente@email.com"
                   />
@@ -527,6 +551,9 @@ export default function PacientesPage() {
                 </label>
                 <input
                   type="text"
+                  name="direccion"
+                  value={formData.direccion}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                   placeholder="Av. Principal 123, Lima"
                 />
@@ -539,6 +566,9 @@ export default function PacientesPage() {
                 </label>
                 <textarea
                   rows={3}
+                  name="observaciones"
+                  value={formData.observaciones}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
                   placeholder="Alergias, condiciones médicas, medicamentos..."
                 ></textarea>
@@ -548,7 +578,20 @@ export default function PacientesPage() {
               <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false)
+                    setEditingPatient(null)
+                    setFormData({
+                      nombre: '',
+                      apellido: '',
+                      dni: '',
+                      fechaNacimiento: '',
+                      telefono: '',
+                      email: '',
+                      direccion: '',
+                      observaciones: ''
+                    })
+                  }}
                   className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 >
                   Cancelar
@@ -557,7 +600,7 @@ export default function PacientesPage() {
                   type="submit"
                   className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-lg hover:shadow-xl"
                 >
-                  Guardar Paciente
+                  {editingPatient ? 'Actualizar' : 'Guardar'} Paciente
                 </button>
               </div>
             </form>
