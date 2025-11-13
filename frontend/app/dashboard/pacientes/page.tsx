@@ -13,6 +13,8 @@ interface Patient {
   fechaNacimiento: string
   ultimaVisita: string
   estado: 'Activo' | 'Inactivo'
+  direccion?: string
+  observaciones?: string
 }
 
 export default function PacientesPage() {
@@ -115,7 +117,17 @@ export default function PacientesPage() {
       // Editar paciente existente
       setPacientes(pacientes.map(p => 
         p.id === editingPatient.id 
-          ? { ...editingPatient, ...formData }
+          ? { 
+              ...p,
+              nombre: formData.nombre,
+              apellido: formData.apellido,
+              dni: formData.dni,
+              telefono: formData.telefono,
+              email: formData.email,
+              fechaNacimiento: formData.fechaNacimiento,
+              direccion: formData.direccion,
+              observaciones: formData.observaciones
+            }
           : p
       ))
     } else {
@@ -129,7 +141,9 @@ export default function PacientesPage() {
         email: formData.email,
         fechaNacimiento: formData.fechaNacimiento,
         ultimaVisita: new Date().toISOString().split('T')[0],
-        estado: 'Activo'
+        estado: 'Activo',
+        direccion: formData.direccion,
+        observaciones: formData.observaciones
       }
       setPacientes([...pacientes, newPatient])
     }
@@ -159,8 +173,8 @@ export default function PacientesPage() {
       fechaNacimiento: patient.fechaNacimiento,
       telefono: patient.telefono,
       email: patient.email,
-      direccion: '',
-      observaciones: ''
+      direccion: patient.direccion || '',
+      observaciones: patient.observaciones || ''
     })
     setShowModal(true)
   }
