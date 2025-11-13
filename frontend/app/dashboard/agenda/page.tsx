@@ -29,10 +29,14 @@ export default function AgendaPage() {
   const [showModal, setShowModal] = useState(false)
   const [selectedOdontologo, setSelectedOdontologo] = useState<number>(0)
   const [viewMode, setViewMode] = useState<'day' | 'week'>('week')
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
 
   // Abrir modal si viene el parámetro ?nueva=true
   useEffect(() => {
     if (searchParams.get('nueva') === 'true') {
+      // Pre-llenar con la fecha de hoy
+      const today = new Date().toISOString().split('T')[0]
+      setFormData(prev => ({ ...prev, fecha: today }))
       setShowModal(true)
     }
   }, [searchParams])
@@ -166,6 +170,10 @@ export default function AgendaPage() {
     }
 
     setCitas([...citas, newCita])
+    
+    // Navegar a la fecha de la cita creada
+    setSelectedDate(new Date(formData.fecha))
+    
     setShowModal(false)
     setFormData({
       pacienteNombre: '',
