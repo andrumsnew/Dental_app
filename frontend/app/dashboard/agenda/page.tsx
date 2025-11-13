@@ -109,11 +109,14 @@ export default function AgendaPage() {
     notas: ''
   })
 
-  // Generar horas del día (8:00 - 20:00)
-  const horas = Array.from({ length: 13 }, (_, i) => {
-    const hora = i + 8
-    return `${hora.toString().padStart(2, '0')}:00`
-  })
+  // Generar horas del día (8:00 - 20:00) cada 30 minutos
+  const horas = []
+  for (let h = 8; h <= 20; h++) {
+    horas.push(`${h.toString().padStart(2, '0')}:00`)
+    if (h < 20) {
+      horas.push(`${h.toString().padStart(2, '0')}:30`)
+    }
+  }
 
   // Obtener días de la semana actual
   const getWeekDays = (date: Date) => {
@@ -174,6 +177,10 @@ export default function AgendaPage() {
     // Navegar a la fecha de la cita creada
     setSelectedDate(new Date(formData.fecha))
     
+    // Mostrar mensaje de éxito
+    setShowSuccessMessage(true)
+    setTimeout(() => setShowSuccessMessage(false), 3000)
+    
     setShowModal(false)
     setFormData({
       pacienteNombre: '',
@@ -198,6 +205,16 @@ export default function AgendaPage() {
 
   return (
     <div className="space-y-6">
+      {/* Mensaje de éxito */}
+      {showSuccessMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 animate-slide-in">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="font-semibold">¡Cita agendada exitosamente!</span>
+        </div>
+      )}
+
       {/* Header con controles */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -295,16 +312,28 @@ export default function AgendaPage() {
             {/* Grid de horas */}
             <div className="divide-y divide-gray-200">
               {horas.map((hora) => (
-                <div key={hora} className="grid grid-cols-8 min-h-[60px]">
-                  <div className="p-4 text-sm text-gray-600 font-medium border-r border-gray-200">
+                <div key={hora} className="grid grid-cols-8 min-h-[50px]">
+                  <div className="p-3 text-xs text-gray-600 font-medium border-r border-gray-200">
                     {hora}
                   </div>
                   {weekDays.map((day, dayIndex) => {
                     const citasDelDia = getCitasDelDia(day)
-                    const citasEnHora = citasDelDia.filter(cita => cita.horaInicio === hora)
+                    
+                    // Buscar citas que comiencen en esta hora o en el rango de 30 minutos
+                    const citasEnHora = citasDelDia.filter(cita => {
+                      const [horaInicio] = cita.horaInicio.split(':').map(Number)
+                      const [minInicio] = cita.horaInicio.split(':')[1] ? cita.horaInicio.split(':') : [cita.horaInicio, '00']
+                      const [horaBloque] = hora.split(':').map(Number)
+                      const [minBloque] = hora.split(':')[1] ? hora.split(':') : [hora, '00']
+                      
+                      // Mostrar cita si está dentro del bloque de 30 min
+                      return horaInicio === horaBloque && 
+                             ((minBloque === '00' && parseInt(minInicio) < 30) || 
+                              (minBloque === '30' && parseInt(minInicio) >= 30))
+                    })
                     
                     return (
-                      <div key={dayIndex} className="p-2 border-r border-gray-200 hover:bg-gray-50 relative">
+                      <div key={dayIndex} className="p-1 border-r border-gray-200 hover:bg-gray-50 relative">
                         {citasEnHora.map((cita) => {
                           const odontologo = odontologos.find(o => o.id === cita.odontologoId)
                           return (
@@ -442,26 +471,42 @@ export default function AgendaPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Hora inicio *
                   </label>
-                  <input
-                    type="time"
+                  <select
                     value={formData.horaInicio}
                     onChange={(e) => setFormData({...formData, horaInicio: e.target.value})}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     required
-                  />
+                  >
+                    <option value="">Seleccionar</option>
+                    {Array.from({ length: 52 }, (_, i) => {
+                      const h = Math.floor(i / 4) + 8
+                      const m = (i % 4) * 15
+                      if (h > 20) return null
+                      const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+                      return <option key={time} value={time}>{time}</option>
+                    })}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Hora fin *
                   </label>
-                  <input
-                    type="time"
+                  <select
                     value={formData.horaFin}
                     onChange={(e) => setFormData({...formData, horaFin: e.target.value})}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     required
-                  />
+                  >
+                    <option value="">Seleccionar</option>
+                    {Array.from({ length: 52 }, (_, i) => {
+                      const h = Math.floor(i / 4) + 8
+                      const m = (i % 4) * 15
+                      if (h > 20) return null
+                      const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+                      return <option key={time} value={time}>{time}</option>
+                    })}
+                  </select>
                 </div>
               </div>
 
