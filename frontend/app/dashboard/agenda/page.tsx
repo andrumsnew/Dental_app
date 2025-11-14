@@ -317,69 +317,55 @@ export default function AgendaPage() {
             {/* Grid de horas */}
             <div className="divide-y divide-gray-200">
               {horas.map((hora) => (
-                <div key={hora} className="grid grid-cols-8" style={{ minHeight: '50px' }}>
-                  <div className="p-3 text-xs text-gray-600 font-medium border-r border-gray-200 flex items-start">
+                <div key={hora} className="grid grid-cols-8 min-h-[50px]">
+                  <div className="p-3 text-xs text-gray-600 font-medium border-r border-gray-200">
                     {hora}
                   </div>
                   {weekDays.map((day, dayIndex) => {
                     const fechaStr = day.toISOString().split('T')[0]
                     const citasDelDia = filteredCitas.filter(cita => cita.fecha === fechaStr)
                     
-                    // Buscar citas que estén activas en este bloque de tiempo
+                    // Buscar citas que empiecen en este bloque de tiempo
                     const citasEnHora = citasDelDia.filter(cita => {
-                      const [hInicio, mInicio] = cita.horaInicio.split(':').map(Number)
-                      const [hFin, mFin] = cita.horaFin.split(':').map(Number)
+                      const horaInicio = cita.horaInicio.substring(0, 5) // "09:00"
+                      const [h, m] = horaInicio.split(':').map(Number)
                       const [hBloque, mBloque] = hora.split(':').map(Number)
                       
-                      const minutosInicio = hInicio * 60 + mInicio
-                      const minutosFin = hFin * 60 + mFin
-                      const minutosBloque = hBloque * 60 + mBloque
+                      // Si la hora coincide exactamente
+                      if (h === hBloque && m === mBloque) return true
                       
-                      // La cita se muestra solo en el bloque donde inicia
-                      return minutosInicio === minutosBloque
-                    }).sort((a, b) => {
-                      // Ordenar por hora de inicio
-                      const [hA, mA] = a.horaInicio.split(':').map(Number)
-                      const [hB, mB] = b.horaInicio.split(':').map(Number)
-                      return (hA * 60 + mA) - (hB * 60 + mB)
+                      // Si está en el rango de este bloque (ej: 09:15 se muestra en 09:00 o 09:30)
+                      if (h === hBloque) {
+                        if (mBloque === 0 && m < 30) return true
+                        if (mBloque === 30 && m >= 30) return true
+                      }
+                      
+                      return false
                     })
                     
                     return (
-                      <div key={dayIndex} className="p-1 border-r border-gray-200 hover:bg-gray-50 relative min-h-[60px]">
-                        <div className="space-y-1">
-                          {citasEnHora.map((cita) => {
-                            const odontologo = odontologos.find(o => o.id === cita.odontologoId)
-                            
-                            // Calcular la altura basada en la duración
-                            const [hInicio, mInicio] = cita.horaInicio.split(':').map(Number)
-                            const [hFin, mFin] = cita.horaFin.split(':').map(Number)
-                            const duracionMinutos = (hFin * 60 + mFin) - (hInicio * 60 + mInicio)
-                            const bloques = Math.ceil(duracionMinutos / 30)
-                            const altura = bloques * 50 - 8
-                            
-                            return (
-                              <div
-                                key={cita.id}
-                                onClick={() => {
-                                  setSelectedCita(cita)
-                                  setShowDetailModal(true)
-                                }}
-                                style={{ height: `${altura}px`, minHeight: '50px' }}
-                                className={`${odontologo?.color} bg-opacity-20 border-l-4 ${odontologo?.color} p-2 rounded cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02] relative z-10 flex flex-col justify-between`}
-                              >
-                                <div>
-                                  <p className="text-xs font-bold text-gray-800 truncate">
-                                    {cita.horaInicio} - {cita.pacienteNombre}
-                                  </p>
-                                  <p className="text-xs text-gray-600 truncate">{cita.tratamiento}</p>
-                                </div>
-                                <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mt-1 ${getEstadoColor(cita.estado)} self-start`}>
-                                  {cita.estado}
-                                </span>
-                              </div>
-                            )
-                          })}
-                        </div>
+                      <div key={dayIndex} className="p-1 border-r border-gray-200 hover:bg-gray-50 relative">
+                        {citasEnHora.map((cita) => {
+                          const odontologo = odontologos.find(o => o.id === cita.odontologoId)
+                          return (
+                            <div
+                              key={cita.id}
+                              onClick={() => {
+                                setSelectedCita(cita)
+                                setShowDetailModal(true)
+                              }}
+                              className={`${odontologo?.color} bg-opacity-20 border-l-4 ${odontologo?.color} p-2 rounded mb-1 cursor-pointer hover:shadow-lg transition-all hover:scale-105`}
+                            >
+                              <p className="text-xs font-bold text-gray-800 truncate">
+                                {cita.horaInicio} - {cita.pacienteNombre}
+                              </p>
+                              <p className="text-xs text-gray-600 truncate">{cita.tratamiento}</p>
+                              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mt-1 ${getEstadoColor(cita.estado)}`}>
+                                {cita.estado}
+                              </span>
+                            </div>
+                          )
+                        })}
                       </div>
                     )
                   })}
