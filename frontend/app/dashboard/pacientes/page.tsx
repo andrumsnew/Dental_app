@@ -385,7 +385,7 @@ export default function PacientesPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <button 
-                        onClick={() => alert('Ver detalle (Día 6)')}
+                        onClick={() => window.location.href = `/dashboard/pacientes/${paciente.id}`}
                         className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                         title="Ver detalle"
                       >
