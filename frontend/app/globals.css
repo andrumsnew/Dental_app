@@ -25,11 +25,35 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Al final del archivo */
+/* Forzar modo claro y evitar inversión de colores del navegador */
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Fix para autocompletado de Chrome */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px white inset !important;
   -webkit-text-fill-color: #1f2937 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Asegurar que inputs siempre tengan fondo blanco */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+  background-color: white !important;
+  color: #1f2937 !important;
 }
