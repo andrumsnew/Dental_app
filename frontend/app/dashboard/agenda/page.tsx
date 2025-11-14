@@ -30,6 +30,8 @@ export default function AgendaPage() {
   const [selectedOdontologo, setSelectedOdontologo] = useState<number>(0)
   const [viewMode, setViewMode] = useState<'day' | 'week'>('week')
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [selectedCita, setSelectedCita] = useState<Cita | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
 
   // Abrir modal si viene el parámetro ?nueva=true
   useEffect(() => {
@@ -47,6 +49,9 @@ export default function AgendaPage() {
     { id: 3, nombre: 'Dr. Martínez', color: 'bg-green-500' },
   ]
 
+  // Obtener fecha de hoy en formato YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0]
+
   const [citas, setCitas] = useState<Cita[]>([
     {
       id: 1,
@@ -54,7 +59,7 @@ export default function AgendaPage() {
       pacienteNombre: 'María García López',
       odontologoId: 1,
       odontologoNombre: 'Dr. García',
-      fecha: '2024-11-13',
+      fecha: today,
       horaInicio: '09:00',
       horaFin: '09:30',
       tratamiento: 'Limpieza dental',
@@ -67,7 +72,7 @@ export default function AgendaPage() {
       pacienteNombre: 'Juan Pérez Torres',
       odontologoId: 1,
       odontologoNombre: 'Dr. García',
-      fecha: '2024-11-13',
+      fecha: today,
       horaInicio: '10:30',
       horaFin: '11:30',
       tratamiento: 'Extracción',
@@ -79,7 +84,7 @@ export default function AgendaPage() {
       pacienteNombre: 'Ana Torres Ramos',
       odontologoId: 2,
       odontologoNombre: 'Dra. Rodríguez',
-      fecha: '2024-11-13',
+      fecha: today,
       horaInicio: '14:00',
       horaFin: '15:00',
       tratamiento: 'Ortodoncia',
@@ -91,7 +96,7 @@ export default function AgendaPage() {
       pacienteNombre: 'Carlos Ruiz Mendoza',
       odontologoId: 3,
       odontologoNombre: 'Dr. Martínez',
-      fecha: '2024-11-13',
+      fecha: today,
       horaInicio: '15:30',
       horaFin: '16:30',
       tratamiento: 'Endodoncia',
@@ -317,19 +322,25 @@ export default function AgendaPage() {
                     {hora}
                   </div>
                   {weekDays.map((day, dayIndex) => {
-                    const citasDelDia = getCitasDelDia(day)
+                    const fechaStr = day.toISOString().split('T')[0]
+                    const citasDelDia = filteredCitas.filter(cita => cita.fecha === fechaStr)
                     
-                    // Buscar citas que comiencen en esta hora o en el rango de 30 minutos
+                    // Buscar citas que empiecen en este bloque de tiempo
                     const citasEnHora = citasDelDia.filter(cita => {
-                      const [horaInicio] = cita.horaInicio.split(':').map(Number)
-                      const [minInicio] = cita.horaInicio.split(':')[1] ? cita.horaInicio.split(':') : [cita.horaInicio, '00']
-                      const [horaBloque] = hora.split(':').map(Number)
-                      const [minBloque] = hora.split(':')[1] ? hora.split(':') : [hora, '00']
+                      const horaInicio = cita.horaInicio.substring(0, 5) // "09:00"
+                      const [h, m] = horaInicio.split(':').map(Number)
+                      const [hBloque, mBloque] = hora.split(':').map(Number)
                       
-                      // Mostrar cita si está dentro del bloque de 30 min
-                      return horaInicio === horaBloque && 
-                             ((minBloque === '00' && parseInt(minInicio) < 30) || 
-                              (minBloque === '30' && parseInt(minInicio) >= 30))
+                      // Si la hora coincide exactamente
+                      if (h === hBloque && m === mBloque) return true
+                      
+                      // Si está en el rango de este bloque (ej: 09:15 se muestra en 09:00 o 09:30)
+                      if (h === hBloque) {
+                        if (mBloque === 0 && m < 30) return true
+                        if (mBloque === 30 && m >= 30) return true
+                      }
+                      
+                      return false
                     })
                     
                     return (
@@ -339,7 +350,11 @@ export default function AgendaPage() {
                           return (
                             <div
                               key={cita.id}
-                              className={`${odontologo?.color} bg-opacity-20 border-l-4 ${odontologo?.color} p-2 rounded mb-1 cursor-pointer hover:shadow-md transition-shadow`}
+                              onClick={() => {
+                                setSelectedCita(cita)
+                                setShowDetailModal(true)
+                              }}
+                              className={`${odontologo?.color} bg-opacity-20 border-l-4 ${odontologo?.color} p-2 rounded mb-1 cursor-pointer hover:shadow-lg transition-all hover:scale-105`}
                             >
                               <p className="text-xs font-bold text-gray-800 truncate">
                                 {cita.horaInicio} - {cita.pacienteNombre}
@@ -553,6 +568,157 @@ export default function AgendaPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de detalle de cita */}
+      {showDetailModal && selectedCita && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <h2 className="text-2xl font-bold">Detalle de Cita</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false)
+                  setSelectedCita(null)
+                }}
+                className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Estado */}
+              <div className="flex items-center justify-between pb-4 border-b">
+                <span className={`px-4 py-2 rounded-full text-sm font-bold ${getEstadoColor(selectedCita.estado)}`}>
+                  {selectedCita.estado}
+                </span>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      setCitas(citas.map(c => 
+                        c.id === selectedCita.id 
+                          ? { ...c, estado: 'Confirmada' }
+                          : c
+                      ))
+                      setSelectedCita({ ...selectedCita, estado: 'Confirmada' })
+                    }}
+                    className="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+                  >
+                    Confirmar
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setCitas(citas.map(c => 
+                        c.id === selectedCita.id 
+                          ? { ...c, estado: 'Cancelada' }
+                          : c
+                      ))
+                      setSelectedCita({ ...selectedCita, estado: 'Cancelada' })
+                    }}
+                    className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+
+              {/* Información del paciente */}
+              <div className="bg-blue-50 rounded-xl p-4">
+                <h3 className="text-sm font-semibold text-gray-600 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Paciente
+                </h3>
+                <p className="text-2xl font-bold text-gray-800">{selectedCita.pacienteNombre}</p>
+              </div>
+
+              {/* Información de la cita */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-sm text-gray-600 mb-1">Odontólogo</p>
+                  <p className="text-lg font-semibold text-gray-800">{selectedCita.odontologoNombre}</p>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-sm text-gray-600 mb-1">Tratamiento</p>
+                  <p className="text-lg font-semibold text-gray-800">{selectedCita.tratamiento}</p>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-sm text-gray-600 mb-1">Fecha</p>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {new Date(selectedCita.fecha).toLocaleDateString('es-PE', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-sm text-gray-600 mb-1">Horario</p>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {selectedCita.horaInicio} - {selectedCita.horaFin}
+                  </p>
+                </div>
+              </div>
+
+              {/* Notas */}
+              {selectedCita.notas && (
+                <div className="bg-yellow-50 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    Notas adicionales
+                  </h3>
+                  <p className="text-gray-700">{selectedCita.notas}</p>
+                </div>
+              )}
+
+              {/* Botones de acción */}
+              <div className="flex gap-3 pt-4 border-t">
+                <button
+                  onClick={() => {
+                    // Aquí iría la lógica para editar
+                    alert('Función de edición en desarrollo')
+                  }}
+                  className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Editar Cita
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('¿Estás seguro de eliminar esta cita?')) {
+                      setCitas(citas.filter(c => c.id !== selectedCita.id))
+                      setShowDetailModal(false)
+                      setSelectedCita(null)
+                    }
+                  }}
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Eliminar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
