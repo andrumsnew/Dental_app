@@ -209,19 +209,19 @@ export default function PacienteDetallePage() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-600 mb-3">Datos Personales</h3>
                   <div className="space-y-2">
-                    <p><span className="text-gray-600">Nombre completo:</span> <span className="font-semibold">{paciente.nombre} {paciente.apellido}</span></p>
-                    <p><span className="text-gray-600">DNI:</span> <span className="font-semibold">{paciente.dni}</span></p>
-                    <p><span className="text-gray-600">Fecha de nacimiento:</span> <span className="font-semibold">{new Date(paciente.fechaNacimiento).toLocaleDateString('es-PE')}</span></p>
-                    <p><span className="text-gray-600">Edad:</span> <span className="font-semibold">{calcularEdad()} años</span></p>
-                    <p><span className="text-gray-600">Dirección:</span> <span className="font-semibold">{paciente.direccion}</span></p>
+                    <p><span className="text-gray-600">Nombre completo:</span> <span className="font-semibold text-gray-800">{paciente.nombre} {paciente.apellido}</span></p>
+                    <p><span className="text-gray-600">DNI:</span> <span className="font-semibold text-gray-800">{paciente.dni}</span></p>
+                    <p><span className="text-gray-600">Fecha de nacimiento:</span> <span className="font-semibold text-gray-800">{new Date(paciente.fechaNacimiento).toLocaleDateString('es-PE')}</span></p>
+                    <p><span className="text-gray-600">Edad:</span> <span className="font-semibold text-gray-800">{calcularEdad()} años</span></p>
+                    <p><span className="text-gray-600">Dirección:</span> <span className="font-semibold text-gray-800">{paciente.direccion}</span></p>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-600 mb-3">Contacto</h3>
                   <div className="space-y-2">
-                    <p><span className="text-gray-600">Teléfono:</span> <span className="font-semibold">{paciente.telefono}</span></p>
-                    <p><span className="text-gray-600">Email:</span> <span className="font-semibold">{paciente.email}</span></p>
+                    <p><span className="text-gray-600">Teléfono:</span> <span className="font-semibold text-gray-800">{paciente.telefono}</span></p>
+                    <p><span className="text-gray-600">Email:</span> <span className="font-semibold text-gray-800">{paciente.email}</span></p>
                   </div>
                 </div>
               </div>
