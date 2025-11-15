@@ -37,6 +37,14 @@ export default function PacienteDetallePage() {
   const pacienteId = params.id
 
   const [activeTab, setActiveTab] = useState<'info' | 'citas' | 'historial' | 'imagenes' | 'odontograma'>('info')
+  const [showModalTratamiento, setShowModalTratamiento] = useState(false)
+  const [formTratamiento, setFormTratamiento] = useState({
+    pieza: '',
+    tratamiento: '',
+    descripcion: '',
+    costo: '',
+    odontologo: ''
+  })
 
   // Datos de ejemplo del paciente (luego vendrá del backend)
   const paciente = {
@@ -62,11 +70,35 @@ export default function PacienteDetallePage() {
     { id: 3, fecha: '2024-10-15', hora: '09:30', tratamiento: 'Extracción pieza 28', odontologo: 'Dra. Rodríguez', estado: 'Completada' },
   ]
 
-  const historialClinico: Tratamiento[] = [
+  const [historialClinico, setHistorialClinico] = useState<Tratamiento[]>([
     { id: 1, fecha: '2024-10-15', pieza: '28', tratamiento: 'Extracción', descripcion: 'Extracción de muela del juicio superior derecha', costo: 250, odontologo: 'Dra. Rodríguez' },
     { id: 2, fecha: '2024-09-20', pieza: '16', tratamiento: 'Obturación', descripcion: 'Caries oclusal, obturación con resina', costo: 150, odontologo: 'Dr. García' },
     { id: 3, fecha: '2024-08-10', pieza: '36', tratamiento: 'Endodoncia', descripcion: 'Tratamiento de conducto + corona', costo: 800, odontologo: 'Dr. Martínez' },
-  ]
+  ])
+
+  const handleAgregarTratamiento = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const nuevoTratamiento: Tratamiento = {
+      id: historialClinico.length + 1,
+      fecha: new Date().toISOString().split('T')[0],
+      pieza: formTratamiento.pieza,
+      tratamiento: formTratamiento.tratamiento,
+      descripcion: formTratamiento.descripcion,
+      costo: parseFloat(formTratamiento.costo),
+      odontologo: formTratamiento.odontologo
+    }
+
+    setHistorialClinico([nuevoTratamiento, ...historialClinico])
+    setShowModalTratamiento(false)
+    setFormTratamiento({
+      pieza: '',
+      tratamiento: '',
+      descripcion: '',
+      costo: '',
+      odontologo: ''
+    })
+  }
 
   const imagenes: Imagen[] = [
     { id: 1, tipo: 'Radiografía', fecha: '2024-11-10', url: 'https://placehold.co/400x300/e0e0e0/666?text=Radiografia+Panoramica', notas: 'Panorámica de control' },
@@ -293,12 +325,26 @@ export default function PacienteDetallePage() {
           {activeTab === 'historial' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-800">Tratamientos Realizados ({historialClinico.length})</h3>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Total invertido</p>
-                  <p className="text-2xl font-bold text-indigo-600">
-                    S/ {historialClinico.reduce((sum, t) => sum + t.costo, 0).toLocaleString()}
-                  </p>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Tratamientos Realizados ({historialClinico.length})</h3>
+                  <p className="text-sm text-gray-600 mt-1">Historial completo de procedimientos</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Total invertido</p>
+                    <p className="text-2xl font-bold text-indigo-600">
+                      S/ {historialClinico.reduce((sum, t) => sum + t.costo, 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowModalTratamiento(true)}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Agregar Tratamiento
+                  </button>
                 </div>
               </div>
 
@@ -448,6 +494,153 @@ export default function PacienteDetallePage() {
           )}
         </div>
       </div>
+
+      {/* Modal para agregar tratamiento al historial */}
+      {showModalTratamiento && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <div>
+                <h2 className="text-2xl font-bold">Agregar Tratamiento</h2>
+                <p className="text-sm opacity-90 mt-1">Paciente: {paciente.nombre} {paciente.apellido}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowModalTratamiento(false)
+                  setFormTratamiento({
+                    pieza: '',
+                    tratamiento: '',
+                    descripcion: '',
+                    costo: '',
+                    odontologo: ''
+                  })
+                }}
+                className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleAgregarTratamiento} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pieza Dental
+                  </label>
+                  <input
+                    type="text"
+                    value={formTratamiento.pieza}
+                    onChange={(e) => setFormTratamiento({...formTratamiento, pieza: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    placeholder="Ej: 16, 28, 36..."
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Opcional - Deja vacío si no aplica</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Odontólogo *
+                  </label>
+                  <select
+                    value={formTratamiento.odontologo}
+                    onChange={(e) => setFormTratamiento({...formTratamiento, odontologo: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    required
+                  >
+                    <option value="">Seleccionar</option>
+                    <option value="Dr. García">Dr. García</option>
+                    <option value="Dra. Rodríguez">Dra. Rodríguez</option>
+                    <option value="Dr. Martínez">Dr. Martínez</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tratamiento Realizado *
+                </label>
+                <input
+                  type="text"
+                  value={formTratamiento.tratamiento}
+                  onChange={(e) => setFormTratamiento({...formTratamiento, tratamiento: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                  placeholder="Ej: Limpieza dental, Extracción, Obturación..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Descripción Detallada *
+                </label>
+                <textarea
+                  rows={3}
+                  value={formTratamiento.descripcion}
+                  onChange={(e) => setFormTratamiento({...formTratamiento, descripcion: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
+                  placeholder="Describe el procedimiento realizado..."
+                  required
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Costo (S/) *
+                </label>
+                <input
+                  type="number"
+                  value={formTratamiento.costo}
+                  onChange={(e) => setFormTratamiento({...formTratamiento, costo: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                  placeholder="150"
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="text-sm text-gray-700">
+                    <p className="font-semibold text-blue-800 mb-1">Nota:</p>
+                    <p>Este tratamiento se registrará con la fecha de hoy. Se agregará al historial clínico del paciente y podrá ser facturado posteriormente.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModalTratamiento(false)
+                    setFormTratamiento({
+                      pieza: '',
+                      tratamiento: '',
+                      descripcion: '',
+                      costo: '',
+                      odontologo: ''
+                    })
+                  }}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-lg hover:shadow-xl"
+                >
+                  Guardar Tratamiento
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
