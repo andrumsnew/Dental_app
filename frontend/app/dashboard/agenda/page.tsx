@@ -7,13 +7,18 @@ interface Cita {
   id: number
   pacienteId: number
   pacienteNombre: string
+  pacienteTelefono?: string
   odontologoId: number
   odontologoNombre: string
   fecha: string
   horaInicio: string
   horaFin: string
   tratamiento: string
-  estado: 'Confirmada' | 'Pendiente' | 'Cancelada' | 'Completada'
+  especialidad?: string
+  sede?: string
+  estado: 'Confirmada' | 'Pendiente' | 'Cancelada' | 'Completada' | 'Confirmado por telefono'
+  motivoConsulta?: string
+  observacion?: string
   notas?: string
 }
 

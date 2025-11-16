@@ -237,6 +237,68 @@ export default function PacienteDetallePage() {
           {/* Tab: Información */}
           {activeTab === 'info' && (
             <div className="space-y-6">
+              {/* Cards de información médica importante */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">🚨</span>
+                    <h3 className="font-bold text-red-800">Alergias Médicas</h3>
+                  </div>
+                  <p className="text-red-700 font-semibold">{paciente.alergias || 'No cuenta con alergias'}</p>
+                </div>
+
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">📝</span>
+                    <h3 className="font-bold text-yellow-800">Notas</h3>
+                  </div>
+                  <p className="text-yellow-700">{paciente.observaciones || 'Ninguna'}</p>
+                </div>
+
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">💊</span>
+                    <h3 className="font-bold text-blue-800">Enfermedades</h3>
+                  </div>
+                  <p className="text-blue-700">{paciente.enfermedades || 'No tiene enfermedades'}</p>
+                </div>
+
+                <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">💉</span>
+                    <h3 className="font-bold text-purple-800">Medicamentos</h3>
+                  </div>
+                  <p className="text-purple-700">{paciente.medicamentos || 'No cuenta con medicamentos'}</p>
+                </div>
+              </div>
+
+              {/* Resumen financiero */}
+              <div className="bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-purple-200 rounded-xl p-6">
+                <h3 className="font-bold text-gray-800 mb-4 text-lg">💰 Resumen Financiero</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Total Tratamientos:</p>
+                    <p className="text-2xl font-bold text-indigo-600">
+                      S/ {historialClinico.reduce((sum, t) => sum + t.costo, 0).toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Total Recibido:</p>
+                    <p className="text-2xl font-bold text-green-600">S/ 0.00</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Total Abono:</p>
+                    <p className="text-2xl font-bold text-blue-600">S/ 0.00</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Saldo:</p>
+                    <p className="text-2xl font-bold text-red-600">
+                      S/ {historialClinico.reduce((sum, t) => sum + t.costo, 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-600 mb-3">Datos Personales</h3>
@@ -257,27 +319,6 @@ export default function PacienteDetallePage() {
                   </div>
                 </div>
               </div>
-
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <h3 className="text-sm font-bold text-red-700 mb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  Información Médica Importante
-                </h3>
-                <div className="space-y-2">
-                  <p><span className="text-red-700 font-semibold">Alergias:</span> {paciente.alergias}</p>
-                  <p><span className="text-red-700 font-semibold">Enfermedades:</span> {paciente.enfermedades}</p>
-                  <p><span className="text-red-700 font-semibold">Medicamentos:</span> {paciente.medicamentos}</p>
-                </div>
-              </div>
-
-              {paciente.observaciones && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h3 className="text-sm font-bold text-yellow-800 mb-2">Observaciones</h3>
-                  <p className="text-gray-700">{paciente.observaciones}</p>
-                </div>
-              )}
             </div>
           )}
 
