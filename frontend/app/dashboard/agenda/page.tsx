@@ -142,7 +142,80 @@ export default function AgendaPage() {
     notas: ''
   })
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const newCita: Cita = {
+      id: citas.length + 1,
+      pacienteId: 0,
+      pacienteNombre: formData.pacienteNombre,
+      odontologoId: parseInt(formData.odontologoId),
+      odontologoNombre: odontologos.find(o => o.id === parseInt(formData.odontologoId))?.nombre || '',
+      fecha: formData.fecha,
+      horaInicio: formData.horaInicio,
+      horaFin: formData.horaFin,
+      tratamiento: formData.tratamiento,
+      estado: 'Pendiente',
+      notas: formData.notas
+    }
+
+    setCitas([...citas, newCita])
+    setSelectedDate(new Date(formData.fecha))
+    
+    setShowModal(false)
+    setFormData({
+      pacienteNombre: '',
+      odontologoId: '',
+      fecha: '',
+      horaInicio: '',
+      horaFin: '',
+      tratamiento: '',
+      notas: ''
+    })
+    
+    alert('¡Cita creada exitosamente!')
+  }
+
+  const handleConfirmarCita = () => {
+    if (!selectedCita) return
+    
+    setCitas(citas.map(c => 
+      c.id === selectedCita.id 
+        ? { ...c, estado: 'Confirmada' }
+        : c
+    ))
+    setSelectedCita({ ...selectedCita, estado: 'Confirmada' })
+  }
+
+  const handleCancelarCita = () => {
+    if (!selectedCita) return
+    
+    setCitas(citas.map(c => 
+      c.id === selectedCita.id 
+        ? { ...c, estado: 'Cancelada' }
+        : c
+    ))
+    setSelectedCita({ ...selectedCita, estado: 'Cancelada' })
+  }
+
+  const handleEliminarCita = () => {
+    if (!selectedCita) return
+    
+    if (confirm('¿Estás seguro de eliminar esta cita?')) {
+      setCitas(citas.filter(c => c.id !== selectedCita.id))
+      setShowDetailModal(false)
+      setSelectedCita(null)
+    }
+  }
+
+  const handleEditarCita = () => {
+    alert('Función de edición en desarrollo. Aquí podrías abrir un formulario de edición.')
+  }
+
   const horas = []
+  for (let h = 8; h <= 20; h++) {
+    horas.push(`${h.toString().padStart(2, '0')}:00`)
+  }
   for (let h = 8; h <= 20; h++) {
     horas.push(`${h.toString().padStart(2, '0')}:00`)
   }
@@ -358,28 +431,26 @@ export default function AgendaPage() {
                           return (
                             <div
                               key={cita.id}
-                              className={`absolute left-1 right-1 ${odontologo?.color} rounded-lg p-2 cursor-pointer shadow-md hover:shadow-xl transition-shadow`}
-                              style={{ top: `${top}px`, height: `${height}px` }}
+                              className={`absolute left-1 right-1 ${odontologo?.color} rounded-lg p-2 cursor-pointer shadow-md hover:shadow-xl transition-shadow overflow-hidden`}
+                              style={{ top: `${top}px`, height: `${height}px`, minHeight: '50px' }}
                               onClick={() => handleCitaClick(cita)}
                               onMouseMove={(e) => handleMouseMove(e, cita.id)}
                               onMouseLeave={() => setHoveredCita(null)}
                             >
-                              <div className="flex flex-col justify-between h-full">
-                                <div>
-                                  <p className="text-white text-xs font-semibold">
-                                    {cita.horaInicio} - {cita.horaFin}
+                              <div className="flex flex-col h-full">
+                                <p className="text-white text-xs font-semibold leading-tight">
+                                  {cita.horaInicio} - {cita.horaFin}
+                                </p>
+                                <p className="text-white text-xs font-bold leading-tight mt-1 line-clamp-2">
+                                  {cita.pacienteNombre}
+                                </p>
+                                {height > 60 && (
+                                  <p className="text-white text-xs mt-1 opacity-90">
+                                    {cita.tratamiento}
                                   </p>
-                                  <p className="text-white text-sm font-bold leading-tight mt-1">
-                                    {cita.pacienteNombre}
-                                  </p>
-                                  {height > 60 && (
-                                    <p className="text-white text-xs mt-1 opacity-90">
-                                      {cita.tratamiento}
-                                    </p>
-                                  )}
-                                </div>
+                                )}
                                 {height > 80 && (
-                                  <span className={`text-xs px-2 py-1 rounded ${getEstadoBadge(cita.estado)} inline-block self-start`}>
+                                  <span className={`text-xs px-2 py-0.5 rounded ${getEstadoBadge(cita.estado)} inline-block self-start mt-auto`}>
                                     {cita.estado}
                                   </span>
                                 )}
@@ -403,28 +474,26 @@ export default function AgendaPage() {
                               return (
                                 <div
                                   key={cita.id}
-                                  className={`absolute left-1 right-1 ${odontologo?.color} rounded-lg p-2 cursor-pointer shadow-md hover:shadow-xl transition-shadow`}
-                                  style={{ top: `${top}px`, height: `${height}px` }}
+                                  className={`absolute left-1 right-1 ${odontologo?.color} rounded-lg p-2 cursor-pointer shadow-md hover:shadow-xl transition-shadow overflow-hidden`}
+                                  style={{ top: `${top}px`, height: `${height}px`, minHeight: '50px' }}
                                   onClick={() => handleCitaClick(cita)}
                                   onMouseMove={(e) => handleMouseMove(e, cita.id)}
                                   onMouseLeave={() => setHoveredCita(null)}
                                 >
-                                  <div className="flex flex-col justify-between h-full">
-                                    <div>
-                                      <p className="text-white text-xs font-semibold">
-                                        {cita.horaInicio} - {cita.horaFin}
+                                  <div className="flex flex-col h-full">
+                                    <p className="text-white text-xs font-semibold leading-tight">
+                                      {cita.horaInicio} - {cita.horaFin}
+                                    </p>
+                                    <p className="text-white text-xs font-bold leading-tight mt-1 line-clamp-2">
+                                      {cita.pacienteNombre}
+                                    </p>
+                                    {height > 60 && (
+                                      <p className="text-white text-xs mt-1 opacity-90">
+                                        {cita.tratamiento}
                                       </p>
-                                      <p className="text-white text-sm font-bold leading-tight mt-1">
-                                        {cita.pacienteNombre}
-                                      </p>
-                                      {height > 60 && (
-                                        <p className="text-white text-xs mt-1 opacity-90">
-                                          {cita.tratamiento}
-                                        </p>
-                                      )}
-                                    </div>
+                                    )}
                                     {height > 80 && (
-                                      <span className={`text-xs px-2 py-1 rounded ${getEstadoBadge(cita.estado)} inline-block self-start`}>
+                                      <span className={`text-xs px-2 py-0.5 rounded ${getEstadoBadge(cita.estado)} inline-block self-start mt-auto`}>
                                         {cita.estado}
                                       </span>
                                     )}
@@ -505,10 +574,16 @@ export default function AgendaPage() {
                   {selectedCita.estado}
                 </span>
                 <div className="flex gap-2">
-                  <button className="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm">
+                  <button 
+                    onClick={handleConfirmarCita}
+                    className="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
+                  >
                     Confirmar
                   </button>
-                  <button className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm">
+                  <button 
+                    onClick={handleCancelarCita}
+                    className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+                  >
                     Cancelar
                   </button>
                 </div>
@@ -552,13 +627,29 @@ export default function AgendaPage() {
               )}
 
               <div className="flex gap-3 pt-4 border-t">
-                <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                <button 
+                  onClick={handleEditarCita}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                >
                   Editar
                 </button>
-                <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+                <button 
+                  onClick={() => {
+                    if (selectedCita?.pacienteTelefono) {
+                      const mensaje = `Hola ${selectedCita.pacienteNombre}, recordatorio de cita: ${selectedCita.tratamiento} - ${new Date(selectedCita.fecha).toLocaleDateString('es-PE')} ${selectedCita.horaInicio}`
+                      window.open(`https://wa.me/51${selectedCita.pacienteTelefono}?text=${encodeURIComponent(mensaje)}`, '_blank')
+                    } else {
+                      alert('Este paciente no tiene número de teléfono registrado')
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                >
                   WhatsApp
                 </button>
-                <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
+                <button 
+                  onClick={handleEliminarCita}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
+                >
                   Eliminar
                 </button>
               </div>
@@ -570,22 +661,137 @@ export default function AgendaPage() {
       {/* Modal Nueva Cita */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
-            <div className="bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-lg">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-lg sticky top-0">
               <h2 className="text-xl font-bold">Nueva Cita</h2>
-              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded">
+              <button 
+                onClick={() => setShowModal(false)} 
+                className="p-2 hover:bg-gray-100 rounded"
+              >
                 ✕
               </button>
             </div>
-            <div className="p-6">
-              <p className="text-gray-600">Formulario de nueva cita aquí...</p>
-              <button
-                onClick={() => setShowModal(false)}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Guardar
-              </button>
-            </div>
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Paciente *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.pacienteNombre}
+                    onChange={(e) => setFormData({...formData, pacienteNombre: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    placeholder="Nombre del paciente"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Odontólogo *
+                  </label>
+                  <select
+                    value={formData.odontologoId}
+                    onChange={(e) => setFormData({...formData, odontologoId: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    required
+                  >
+                    <option value="">Seleccionar odontólogo</option>
+                    {odontologos.map(odontologo => (
+                      <option key={odontologo.id} value={odontologo.id}>
+                        {odontologo.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha *
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.fecha}
+                    onChange={(e) => setFormData({...formData, fecha: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Hora inicio *
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.horaInicio}
+                    onChange={(e) => setFormData({...formData, horaInicio: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Hora fin *
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.horaFin}
+                    onChange={(e) => setFormData({...formData, horaFin: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tratamiento *
+                </label>
+                <input
+                  type="text"
+                  value={formData.tratamiento}
+                  onChange={(e) => setFormData({...formData, tratamiento: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="Ej: Limpieza dental, Extracción, etc."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notas adicionales
+                </label>
+                <textarea
+                  rows={3}
+                  value={formData.notas}
+                  onChange={(e) => setFormData({...formData, notas: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                  placeholder="Información adicional sobre la cita..."
+                ></textarea>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                >
+                  Guardar Cita
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
