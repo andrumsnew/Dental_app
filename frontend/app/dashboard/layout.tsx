@@ -10,7 +10,16 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({})
   const pathname = usePathname()
+
+  // Toggle submenu
+  const toggleMenu = (menuName: string) => {
+    setOpenMenus(prev => ({
+      ...prev,
+      [menuName]: !prev[menuName]
+    }))
+  }
 
   const menuItems = [
     { 
@@ -24,33 +33,42 @@ export default function DashboardLayout({
     },
     { 
       name: 'Pacientes', 
-      href: '/dashboard/pacientes', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
-      )
+      ),
+      submenu: [
+        { name: 'Registro de pacientes', href: '/dashboard/pacientes/registro' },
+        { name: 'Historia general', href: '/dashboard/pacientes/historia' }
+      ]
     },
     { 
-      name: 'Agenda', 
-      href: '/dashboard/agenda', 
+      name: 'Calendario', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
-      )
+      ),
+      submenu: [
+        { name: 'Citas', href: '/dashboard/agenda' },
+        { name: 'Control', href: '/dashboard/agenda/control' }
+      ]
     },
     { 
       name: 'Tratamientos', 
-      href: '/dashboard/tratamientos', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
-      )
+      ),
+      submenu: [
+        { name: 'Planes activos', href: '/dashboard/tratamientos' },
+        { name: 'Odontograma', href: '/dashboard/tratamientos/odontograma' }
+      ]
     },
     { 
-      name: 'Facturación', 
+      name: 'Finanzas', 
       href: '/dashboard/facturacion', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,6 +77,26 @@ export default function DashboardLayout({
       )
     },
   ]
+
+  const isSubmenuActive = (submenu?: Array<{ href: string }>) => {
+    if (!submenu) return false
+    return submenu.some(item => pathname.startsWith(item.href))
+  }
+
+  const getCurrentPageTitle = () => {
+    for (const item of menuItems) {
+      if (item.href && pathname === item.href) {
+        return item.name
+      }
+      if (item.submenu) {
+        const submenuItem = item.submenu.find(sub => pathname.startsWith(sub.href))
+        if (submenuItem) {
+          return submenuItem.name
+        }
+      }
+    }
+    return 'Dashboard'
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -80,20 +118,76 @@ export default function DashboardLayout({
         {/* Menu Items */}
         <nav className="mt-6 px-3">
           {menuItems.map((item) => {
-            const isActive = pathname === item.href
+            const hasSubmenu = item.submenu && item.submenu.length > 0
+            const isMenuOpen = openMenus[item.name]
+            const isActive = item.href ? pathname === item.href : isSubmenuActive(item.submenu)
+
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 mb-2 rounded-lg transition-colors ${
-                  isActive 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-indigo-100 hover:bg-indigo-700'
-                }`}
-              >
-                {item.icon}
-                {sidebarOpen && <span>{item.name}</span>}
-              </Link>
+              <div key={item.name} className="mb-2">
+                {/* Menu principal */}
+                {hasSubmenu ? (
+                  <button
+                    onClick={() => toggleMenu(item.name)}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive 
+                        ? 'bg-indigo-600 text-white' 
+                        : 'text-indigo-100 hover:bg-indigo-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.icon}
+                      {sidebarOpen && <span>{item.name}</span>}
+                    </div>
+                    {sidebarOpen && (
+                      <svg 
+                        className={`w-4 h-4 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
+                  </button>
+                ) : (
+                  <Link
+                    href={item.href!}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive 
+                        ? 'bg-indigo-600 text-white' 
+                        : 'text-indigo-100 hover:bg-indigo-700'
+                    }`}
+                  >
+                    {item.icon}
+                    {sidebarOpen && <span>{item.name}</span>}
+                  </Link>
+                )}
+
+                {/* Submenu desplegable */}
+                {hasSubmenu && isMenuOpen && sidebarOpen && (
+                  <div className="mt-2 ml-4 space-y-1">
+                    {item.submenu!.map((subItem) => {
+                      const isSubActive = pathname.startsWith(subItem.href)
+                      return (
+                        <Link
+                          key={subItem.href}
+                          href={subItem.href}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${
+                            isSubActive
+                              ? 'bg-indigo-700 text-white font-medium'
+                              : 'text-indigo-200 hover:bg-indigo-700 hover:text-white'
+                          }`}
+                        >
+                          <svg className="w-1.5 h-1.5" fill="currentColor" viewBox="0 0 8 8">
+                            <circle cx="4" cy="4" r="3" />
+                          </svg>
+                          {subItem.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             )
           })}
         </nav>
@@ -120,7 +214,7 @@ export default function DashboardLayout({
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between px-8 py-4">
             <h2 className="text-2xl font-bold text-gray-800">
-              {menuItems.find(item => item.href === pathname)?.name || 'Dashboard'}
+              {getCurrentPageTitle()}
             </h2>
             
             <div className="flex items-center gap-4">
