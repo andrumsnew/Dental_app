@@ -34,6 +34,7 @@ export default function AgendaPage() {
   const [showModal, setShowModal] = useState(false)
   const [selectedOdontologo, setSelectedOdontologo] = useState<number>(0)
   const [viewMode, setViewMode] = useState<'day' | 'week'>('week')
+  const [hoveredCita, setHoveredCita] = useState<number | null>(null)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [selectedCita, setSelectedCita] = useState<Cita | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -349,25 +350,138 @@ export default function AgendaPage() {
                     })
                     
                     return (
-                      <div key={dayIndex} className="p-1 border-r border-gray-200 hover:bg-gray-50 relative">
+                      <div key={dayIndex} className="p-1 border-r border-gray-200 hover:bg-gray-50 relative min-h-[80px]">
                         {citasEnHora.map((cita) => {
                           const odontologo = odontologos.find(o => o.id === cita.odontologoId)
+                          const isHovered = hoveredCita === cita.id
+                          
                           return (
                             <div
                               key={cita.id}
-                              onClick={() => {
-                                setSelectedCita(cita)
-                                setShowDetailModal(true)
-                              }}
-                              className={`${odontologo?.color} bg-opacity-20 border-l-4 ${odontologo?.color} p-2 rounded mb-1 cursor-pointer hover:shadow-lg transition-all hover:scale-105`}
+                              className="relative"
+                              onMouseEnter={() => setHoveredCita(cita.id)}
+                              onMouseLeave={() => setHoveredCita(null)}
                             >
-                              <p className="text-xs font-bold text-gray-800 truncate">
-                                {cita.horaInicio} - {cita.pacienteNombre}
-                              </p>
-                              <p className="text-xs text-gray-600 truncate">{cita.tratamiento}</p>
-                              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mt-1 ${getEstadoColor(cita.estado)}`}>
-                                {cita.estado}
-                              </span>
+                              <div
+                                onClick={() => {
+                                  setSelectedCita(cita)
+                                  setShowDetailModal(true)
+                                }}
+                                className={`${odontologo?.color} bg-opacity-20 border-l-4 ${odontologo?.color} p-2 rounded mb-1 cursor-pointer transition-all ${
+                                  isHovered ? 'shadow-2xl scale-105 z-50' : 'shadow-md'
+                                }`}
+                              >
+                                <p className="text-xs font-bold text-gray-800 truncate">
+                                  {cita.horaInicio} - {cita.pacienteNombre}
+                                </p>
+                                <p className="text-xs text-gray-600 truncate">{cita.tratamiento}</p>
+                                <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mt-1 ${getEstadoColor(cita.estado)}`}>
+                                  {cita.estado}
+                                </span>
+                              </div>
+
+                              {/* Tooltip expandido al hacer hover */}
+                              {isHovered && (
+                                <div className="absolute left-full top-0 ml-2 z-50 w-96 bg-white rounded-xl shadow-2xl border-2 border-gray-300 p-4 animate-fade-in">
+                                  <div className="space-y-3">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between pb-3 border-b">
+                                      <h3 className="font-bold text-lg text-gray-800">📅 Detalle de Cita</h3>
+                                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${getEstadoColor(cita.estado)}`}>
+                                        {cita.estado}
+                                      </span>
+                                    </div>
+
+                                    {/* Info del paciente */}
+                                    <div className="bg-blue-50 rounded-lg p-3">
+                                      <p className="text-sm text-gray-600 mb-1">Paciente</p>
+                                      <p className="font-bold text-gray-800">{cita.pacienteNombre}</p>
+                                      {cita.pacienteTelefono && (
+                                        <p className="text-sm text-gray-600 mt-1">📞 {cita.pacienteTelefono}</p>
+                                      )}
+                                    </div>
+
+                                    {/* Detalles de la cita */}
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                      <div>
+                                        <p className="text-gray-600">Fecha:</p>
+                                        <p className="font-semibold">{new Date(cita.fecha).toLocaleDateString('es-PE')}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-gray-600">Horario:</p>
+                                        <p className="font-semibold">{cita.horaInicio} - {cita.horaFin}</p>
+                                      </div>
+                                      {cita.especialidad && (
+                                        <div>
+                                          <p className="text-gray-600">Especialidad:</p>
+                                          <p className="font-semibold">{cita.especialidad}</p>
+                                        </div>
+                                      )}
+                                      <div>
+                                        <p className="text-gray-600">Médico:</p>
+                                        <p className="font-semibold">{cita.odontologoNombre}</p>
+                                      </div>
+                                      {cita.sede && (
+                                        <div className="col-span-2">
+                                          <p className="text-gray-600">Sede:</p>
+                                          <p className="font-semibold">{cita.sede}</p>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Motivo de consulta */}
+                                    {cita.motivoConsulta && (
+                                      <div className="bg-yellow-50 rounded-lg p-2">
+                                        <p className="text-xs text-gray-600">Motivo Consulta:</p>
+                                        <p className="text-sm font-semibold">{cita.motivoConsulta}</p>
+                                      </div>
+                                    )}
+
+                                    {/* Observación */}
+                                    {cita.observacion && (
+                                      <div className="bg-gray-50 rounded-lg p-2">
+                                        <p className="text-xs text-gray-600">Observación:</p>
+                                        <p className="text-sm">{cita.observacion}</p>
+                                      </div>
+                                    )}
+
+                                    {/* Botones de acción */}
+                                    <div className="grid grid-cols-3 gap-2 pt-3 border-t">
+                                      {cita.pacienteTelefono && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            const mensaje = `Hola ${cita.pacienteNombre}, recordatorio de cita: ${cita.tratamiento} - ${new Date(cita.fecha).toLocaleDateString('es-PE')} ${cita.horaInicio}`
+                                            window.open(`https://wa.me/51${cita.pacienteTelefono}?text=${encodeURIComponent(mensaje)}`, '_blank')
+                                          }}
+                                          className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs font-medium flex items-center justify-center gap-1"
+                                        >
+                                          💬 WhatsApp
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          window.location.href = `/dashboard/pacientes/${cita.pacienteId}`
+                                        }}
+                                        className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-medium flex items-center justify-center gap-1"
+                                      >
+                                        📋 Historial
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setSelectedCita(cita)
+                                          setShowDetailModal(true)
+                                        }}
+                                        className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs font-medium flex items-center justify-center gap-1"
+                                      >
+                                        ✏️ Editar
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )
                         })}
