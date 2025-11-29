@@ -106,10 +106,7 @@ export default function DashboardPage() {
                 </div>
                 
                 {hiddenStats[stat.title] ? (
-                  <div className="flex items-center gap-2">
-                    <div className="h-9 w-24 bg-gray-200 rounded animate-pulse"></div>
-                    <span className="text-sm text-gray-400">●●●●</span>
-                  </div>
+                  <p className="text-3xl font-bold text-gray-400">***</p>
                 ) : (
                   <>
                     <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
