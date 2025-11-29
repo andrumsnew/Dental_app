@@ -1,3 +1,5 @@
+//app/dashboard/pacientes/historia/page.tsx
+
 'use client'
 
 import { useState } from 'react'

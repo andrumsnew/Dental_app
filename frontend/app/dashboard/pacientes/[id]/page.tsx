@@ -1,3 +1,5 @@
+//app/dashboard/pacientes/[id]/page.tsx
+
 'use client'
 
 import { useState } from 'react'
